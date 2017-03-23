@@ -13,6 +13,11 @@ export default class App extends Component {
     this.onChange = ( editorState ) => {
       this.setState( { editorState } );
     }
+
+    this.onSetCustomState = ( event ) => {
+      const myState = { hi: 'Vic' };
+      console.info( 'Custom state!', myState );
+    }
   }
 
 
@@ -20,12 +25,16 @@ export default class App extends Component {
     return (
       <div>
         <h1>TFK Editor</h1>
+        
         <div style={ { border: '1px solid #ddd' } }>
           <Editor
             editorState={ this.state.editorState }
             onChange={ this.onChange }
           />
         </div>
+
+        <button onClick={ this.onSetCustomState } >Set custom state</button>
+
       </div>
     );
   }
