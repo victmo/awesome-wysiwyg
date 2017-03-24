@@ -1,12 +1,16 @@
+/* eslint-disable no-console */
+/* eslint-disable no-unused-vars */
+/* eslint-disable comma-dangle */
+
 import React, {Component} from 'react';
 import {
   convertToRaw,
-  CompositeDecorator,
-  ContentState,
-  Editor,
-  EditorState,
-  RichUtils,
+  Editor, // The actual editor
+  EditorState, // Editor initial state
+  RichUtils, // So we can bind commands like Cmd+B for bold text
+  Modifier
 } from 'draft-js';
+
 
 // const styles = {
 //   mutable: {
@@ -20,11 +24,14 @@ const styleMap = {
     backgroundColor: 'lightgreen'
    }
 };
+
 export default class App extends Component {
 
   constructor( props ) {
     super( props );
 
+
+    // Default state
     this.state = {
       editorState: EditorState.createEmpty(),
       showDescriptionInput: false,
@@ -36,14 +43,36 @@ export default class App extends Component {
       console.log( convertToRaw(content) );
     };
 
+
+    // Handle onChange
     this.onChange = ( editorState ) => {
       this.setState( { editorState } );
     }
 
-    this.onSetCustomState = ( event ) => {
-      const myState = { hi: 'Vic' };
-      console.info( 'Custom state!', myState );
+
+    // Handle key commands
+    this.handleKeyCommand = ( command ) => {
+      console.info( command );
+      const newState = RichUtils.handleKeyCommand( this.state.editorState, command );
+      if (newState ) {
+        this.onChange( newState );
+      }
     }
+
+
+    // Custom button
+    this.onBold = ( event ) => {
+      const newState = RichUtils.toggleInlineStyle( this.state.editorState, 'BOLD' );
+       if (newState ) {
+        this.onChange( newState );
+      }
+    }
+
+    // Log the text
+    this.logState = () => {
+      const content = this.state.editorState.getCurrentContent();
+      console.info(Date().toString(), convertToRaw(content) );
+    };
 
     this.handleKeyCommand = ( command ) => {
       console.info( command );
@@ -59,24 +88,12 @@ export default class App extends Component {
 
     }
 
+    // binding function to show field for definition
     this.promptForDefinition = this.promptForDefinition.bind(this);
+    // setting description from input field
     this.onDecriptionChange = (e) => this.setState({descriptionValue: e.target.value});
-      // if ( 'bold' === command ) {
-        // if using setState outside of onChange, must pass state as editorState named state prop
-        // which this.state is expecting to update the state
-        // const editorState = RichUtils.toggleInlineStyle( this.state.editorState, 'BOLD' );
-        // if (editorState) {
-        //   this.setState( { editorState } );
-        //   return 'handled';
-        // }
 
-        // const newState = RichUtils.toggleInlineStyle( this.state.editorState, 'BOLD' );
-        // if ( newState ) {
-        //   this.onChange( { newState } );
-        //   return 'handled';
-        // }
-      // }
-
+    // function to show field for definition
     this.promptForDefinition = (e) => {
       e.preventDefault();
       const {editorState} = this.state;
@@ -101,6 +118,7 @@ export default class App extends Component {
       }
     }
 
+    // function to turn selected word into entity and to apply description entered as data
     this.confirmDescription = (e) => {
       e.preventDefault();
       const {editorState, descriptionValue} = this.state;
@@ -123,16 +141,6 @@ export default class App extends Component {
       });
     }
 
-
-    // custom mapped bold button
-    this.onBold = ( event ) => {
-      const newState = RichUtils.toggleInlineStyle( this.state.editorState, 'BOLD' );
-      if ( newState ) {
-        this.onChange( newState );
-        return 'handled';
-      }
-    }
-
     this.createEntity=() => {
       const {editorState} = this.state;
       const currentContent = this.state.editorState.getCurrentContent();
@@ -152,6 +160,36 @@ export default class App extends Component {
       });
 
     }
+
+
+    // // Custom entity
+    // this.createEntity = () => {
+    //   const ts = Date().toString();
+
+    //   // Get a reference to the actual content of my Editable
+    //   const contentState = this.state.editorState.getCurrentContent();
+
+    //   // Create an Entity (we haven't assined it yet)
+    //   const contentStateWithEntity = contentState.createEntity(
+    //     'POWER_WORD',
+    //     'MUTABLE',
+    //     { description: `Lorem ipsum ${ Date().toString() }` }
+    //   );
+
+    //   // Get the Entity's key (name)
+    //   const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+    //   console.info( 'Entity key:', entityKey );
+
+    //   // Get the current selection as a state
+    //   const selectionState = this.state.editorState.getSelection();
+    //   console.info( 'selectionState', selectionState );
+
+    //   const contentStateWithLink = Modifier.applyEntity(
+    //     contentState,
+    //     selectionState,
+    //     entityKey
+    //   );
+    // }
 
     this.onDescriptionInputKeyDown = (e) => {
       if (e.which === 13) {
@@ -192,8 +230,6 @@ export default class App extends Component {
             customStyleMap={styleMap}
           />
         </div>
-
-        <button onClick={ this.onSetCustomState } >Set custom state</button>
 
         <button onClick={ this.logState }> Log State </button>
         <button onClick={ this.onBold } >Bold</button>
