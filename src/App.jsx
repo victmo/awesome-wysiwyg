@@ -7,9 +7,9 @@ import {
   convertToRaw,
   Editor, // The actual editor
   EditorState, // Editor initial state
-  RichUtils, // So we can bind commands like Cmd+B for bold text
-  Modifier,
-  CompositeDecorator,
+  RichUtils, // So we can automatically bind commands like Cmd+B for bold text
+  Modifier, // Allow us to apply entities to content
+  CompositeDecorator, // Handles styling of entities
 } from 'draft-js';
 import PowerWord from './PowerWord.jsx';
 
@@ -116,6 +116,12 @@ export default class App extends Component {
       // Update our state with the new EditorState
       // we just created
       this.onChange( newEditorState );
+
+      this.setState( {
+        inputValue: '',
+      } );
+
+      setTimeout( () => this.focus(), 0 );
     }
 
   } // end constructor
