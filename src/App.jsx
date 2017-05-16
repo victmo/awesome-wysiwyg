@@ -107,7 +107,7 @@ export default class App extends Component {
       const newEditorState = this.addEntity(
         { // Metadata assigned to our entity
           type: 'POWER_WORD', 
-          mutability: 'IMMUTABLE', 
+          mutability: 'MUTABLE', //'IMMUTABLE', 
           data: { description: this.state.inputValue }
         },
         this.state.editorState
