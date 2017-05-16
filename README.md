@@ -1,18 +1,9 @@
-React Boilerplate
+Awesome WYSIWYG
 =====================
 
-A minimal and light dev environment for ReactJS.
+Proof-of-concept draft.js project with custom entities.
 
 ### Usage
-
-Clone the boilerplate and create your own git repo.
-
-```
-git clone git@github.com:lighthouse-labs/react-simple-boilerplate.git
-git remote rm origin
-git remote add origin [YOUR NEW REPOSITORY]
-# Manually update your package.json file
-```
 
 Install the dependencies and start the server.
 
@@ -22,23 +13,8 @@ npm start
 open http://localhost:3000
 ```
 
-### Static Files
+### How does it work
 
-You can store static files like images, fonts, etc in the `build` folder.
+Select text, write something in the description box and 'assign' it to the selected text.
 
-For example, if you copy a file called my_image.png into the build folder you can access it using `http://localhost:3000/build/my_image.png`.
-
-### Linting
-
-This boilerplate project includes React ESLint configuration.
-
-```
-npm run lint
-```
-
-### Dependencies
-
-* React
-* Webpack
-* [babel-loader](https://github.com/babel/babel-loader)
-* [webpack-dev-server](https://github.com/webpack/webpack-dev-server)
+A popup with the description will show up when you roll-over the text you selected.
