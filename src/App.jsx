@@ -3,47 +3,59 @@
 /* eslint-disable comma-dangle */
 
 import React, {Component} from 'react';
-import {
-  convertToRaw,
-  Editor, // The actual editor
-  EditorState, // Editor initial state
-  RichUtils, // So we can automatically bind commands like Cmd+B for bold text
-  Modifier, // Allow us to apply entities to content
-  CompositeDecorator, // Handles styling of entities
-} from 'draft-js';
+import { Editor, Raw } from 'slate'
 import PowerWord from './PowerWord.jsx';
 
+const schema = {
+  nodes: {
+    'power-word': PowerWord,
+  },
+}
+
+const initialState = {
+  nodes: [
+    {
+      kind: 'block', type: 'paragraph',
+      nodes: [
+        {
+          kind: 'text', text: 'Lorem ipsum!',
+        },
+      ],
+    },
+  ],
+}
 
 export default class App extends Component {
 
   constructor( props ) {
     super( props );
 
-    // Decorate entities...
-    // This is executed everytime a record is rendered
-    this._powerWordStrategy = (contentBlock, callback, contentState) => {
-      const text = contentBlock.getText();
-      contentBlock.findEntityRanges(
-        (character) => {
-          const entityKey = character.getEntity();
-          const result = entityKey !== null
-          return result;
-        },
-        callback
-      );
-    };
-
-    const decorator = new CompositeDecorator( [ {
-      strategy: this._powerWordStrategy,
-      component: PowerWord,
-    } ] );
-    
-
     // Default state
     this.state = {
-      editorState: EditorState.createEmpty( decorator ),
-      inputValue: '',
+      state: Raw.deserialize(initialState, { terse: true }),
+      inputValue: 'This is a random power word definition.',
     };
+
+    // Handle onChange
+    this.onChange = (state) => {
+      this.setState({ state })
+    }
+
+    // Log the content state
+    this.logState = () => {
+      const content = Raw.serialize( this.state.state );
+      console.info( content );
+    };
+
+
+
+
+    // Set the focus to the editor
+    this.focus = () => {
+      // this.editor.focus();
+    }
+
+    // Powerword input _____________
 
     // Handle input field changes and update state.
     this.onInputChange = ( e ) => {
@@ -52,76 +64,22 @@ export default class App extends Component {
       } );
     }
 
-    // Set the focus to the editor
-    this.focus = () => {
-      this.editor.focus();
-    }
-
-    // Handle onChange
-    this.onChange = ( editorState ) => {
-      this.setState( { editorState } );
-    }
-
-    // Handle key commands
-    this.handleKeyCommand = ( command ) => {
-      console.info( 'Key command', command );
-      const newState = RichUtils.handleKeyCommand( this.state.editorState, command );
-      if (newState ) {
-        this.onChange( newState );
-      }
-    }
-
-    // Example of inline style toggle...
-    this.onBold = ( event ) => {
-      const newState = RichUtils.toggleInlineStyle( this.state.editorState, 'BOLD' );
-       if (newState ) {
-        this.onChange( newState );
-      }
-    }
-
-    // Log the content state
-    this.logState = () => {
-      const content = this.state.editorState.getCurrentContent();
-      console.info( convertToRaw(content) );
-    };
-
-    // This a generic function to create a new EditorState
-    // with an Entity attached to it.
-    this.addEntity = (
-      {type, mutability, data},
-      editorState,
-      selection = editorState.getSelection(),
-      contentState = editorState.getCurrentContent()
-    ) => {
-      const contentStateWithEntity = contentState.createEntity(type, mutability, data)
-      const entityKey = contentStateWithEntity.getLastCreatedEntityKey()
-      const contentStateWithEntityApplied = Modifier.applyEntity(contentStateWithEntity, selection, entityKey)
-      const editorStateWithEntity = EditorState.push(editorState, contentStateWithEntityApplied, 'apply-entity')
-      return editorStateWithEntity
-    }
-
-    // Attach description to selected text
     this.attachPowerWord = () => {
-      // Create a new EditorState with an Entity
-      // attached to it (using our entity factory function)
-      const newEditorState = this.addEntity(
-        { // Metadata assigned to our entity
-          type: 'POWER_WORD', 
-          mutability: 'MUTABLE', //'IMMUTABLE', 
+      console.info(`Attaching ${ this.state.inputValue }`);
+      const newState = this.state.state
+        .transform()
+        .wrapInline({
+          type: 'power-word',
+          //isVoid: true,
           data: { description: this.state.inputValue }
-        },
-        this.state.editorState
-      );
+        })
+        .collapseToEnd()
+        .apply()
+      ;
 
-      // Update our state with the new EditorState
-      // we just created
-      this.onChange( newEditorState );
 
-      this.setState( {
-        inputValue: '',
-      } );
 
-      setTimeout( () => this.focus(), 0 );
+      this.onChange(newState);
     }
 
   } // end constructor
@@ -156,12 +114,9 @@ export default class App extends Component {
           onClick={ this.focus }
         >
           <Editor
-            className='form-control'
-            editorState={ this.state.editorState }
+            state={ this.state.state }
+            schema={schema}
             onChange={ this.onChange }
-            handleKeyCommand={ this.handleKeyCommand }
-            placeholder='Write something...'
-            ref={ ( editor ) => this.editor = editor }
           />
         </div>
 
@@ -170,6 +125,8 @@ export default class App extends Component {
           className='btn btn-primary btn-sm'
           onClick={ this.logState } >Log State
         </button>
+
+        <pre>{ JSON.stringify( Raw.serialize( this.state.state ), 2, 2 ) }</pre>
 
       </div>
     );

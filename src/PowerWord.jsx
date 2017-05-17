@@ -16,7 +16,8 @@ export default class PowerWord extends Component {
       showDescription: false,
     };
 
-    this.onOver = () => {
+    this.onOver = (e) => {
+      e.stopPropagation();
       this.setState({
         showDescription: true,
       });
@@ -32,19 +33,23 @@ export default class PowerWord extends Component {
 
 
   componentDidMount() {
-    const { description } = this.props.contentState.getEntity(this.props.entityKey).getData();
-    this.description = description;
+    //const { description } = this.props.contentState.getEntity(this.props.entityKey).getData();
+    this.description =  this.props.node.data.get('description');
   }
 
 
   render() {
+    const { attributes, children } = this.props;
+    console.log(this.props)
     return (
       <span
-        className='power-word'
+        className={`power-word ${ this.state.showDescription ? 'active': '' }`}
+        style={{ textDecoration: this.state.showDescription ? 'underline': '' }}
         onMouseOver={ this.onOver }
         onMouseOut={ this.onOut }
+        { ...attributes }
       >
-        { this.props.children }
+        { children }
         {
           this.state.showDescription ?
             <div className='power-word-description'>{ this.description }</div> :

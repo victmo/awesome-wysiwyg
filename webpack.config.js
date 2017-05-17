@@ -15,9 +15,14 @@ module.exports = {
   module: {
     loaders: [
       {
+        test: /\.json$/,
+        loaders: ['json']
+      },
+      {
         test: /\.jsx?$/,
         loaders: ['babel'],
-        include: path.join(__dirname, 'src')
+        include: path.join(__dirname, 'src'),
+        exclude: /node_modules/
       },
       {
         test: /\.scss$/,
